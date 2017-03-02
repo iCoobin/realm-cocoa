@@ -1842,7 +1842,8 @@ static void addProperty(Class cls, const char *name, const char *type, size_t si
     XCTAssertThrows([realm addObject:obj1], @"Adding deleted object should throw");
 
     NSArray *propObject = @[@"", @[obj2], @[]];
-    XCTAssertThrows([ArrayPropertyObject createInRealm:realm withValue:propObject], @"Adding deleted object as a link should throw");
+    XCTAssertThrows([ArrayPropertyObject createInRealm:realm withValue:propObject],
+                    @"Adding deleted object as a link should throw");
 
     [realm commitWriteTransaction];
 
