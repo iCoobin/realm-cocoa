@@ -89,7 +89,7 @@ struct Context {
         id value = doGetValue(obj, propIndex, prop);
         validateValueForProperty(value, prop);
 
-        if ([obj isKindOfClass:info.rlmObjectSchema.objectClass]) {
+        if (!is_create && [obj isKindOfClass:info.rlmObjectSchema.objectClass]) {
             // set the ivars for object and array properties to nil as otherwise the
             // accessors retain objects that are no longer accessible via the properties
             // this is mainly an issue when the object graph being added has cycles,
