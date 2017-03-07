@@ -74,6 +74,7 @@ static void validateValueForProperty(__unsafe_unretained id const obj,
 struct Context {
     RLMRealm *realm;
     RLMClassInfo& info;
+    bool is_create;
     NSDictionary *defaultValues;
 
     id defaultValue(NSString *key) {
@@ -205,9 +206,13 @@ public:
             }
         }
 
-        Context subContext{c->realm, c->realm->_info[@(object_type.c_str())]};
-        // FIXME: needs to call RLMAddObjectToRealm to promote unmanaged accessors
-        return Object::create(&subContext, realm, *realm->schema().find(object_type), value, update).row().get_index();
+        if (c->is_create) {
+            value = RLMCreateObjectInRealmWithValue(c->realm, @(object_type.c_str()), value, update);
+        }
+        else {
+            RLMAddObjectToRealm(value, c->realm, update);
+        }
+        return RLMDynamicCast<RLMObjectBase>(value)->_row.get_index();
     }
 };
 }
@@ -296,7 +301,7 @@ void RLMAddObjectToRealm(__unsafe_unretained RLMObjectBase *const object,
     }
 
     auto& info = realm->_info[object->_objectSchema.className];
-    Context c{realm, info};
+    Context c{realm, info, false};
     object->_row = realm::Object::create(&c, realm->_realm, *info.objectSchema, (id)object, createOrUpdate).row();
     object->_info = &info;
     object->_realm = realm;
@@ -317,7 +322,7 @@ RLMObjectBase *RLMCreateObjectInRealmWithValue(RLMRealm *realm, NSString *classN
     }
 
     auto& info = realm->_info[className];
-    Context c{realm, info};
+    Context c{realm, info, true};
     RLMObjectBase *object = RLMCreateManagedAccessor(info.rlmObjectSchema.accessorClass, realm, &info);
     object->_row = realm::Object::create(&c, realm->_realm, *info.objectSchema, (id)value, createOrUpdate).row();
     RLMInitializeSwiftAccessorGenerics(object);
