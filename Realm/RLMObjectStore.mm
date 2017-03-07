@@ -87,9 +87,11 @@ struct Context {
     id value(id obj, size_t propIndex) {
         auto prop = info.rlmObjectSchema.properties[propIndex];
         id value = doGetValue(obj, propIndex, prop);
-        validateValueForProperty(value, prop);
+        if (value) {
+            validateValueForProperty(value, prop);
+        }
 
-        if (!is_create && [obj isKindOfClass:info.rlmObjectSchema.objectClass]) {
+        if (!is_create && [obj isKindOfClass:info.rlmObjectSchema.objectClass] && !prop.swiftIvar) {
             // set the ivars for object and array properties to nil as otherwise the
             // accessors retain objects that are no longer accessible via the properties
             // this is mainly an issue when the object graph being added has cycles,
